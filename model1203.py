@@ -5,7 +5,6 @@ import torch.nn as nn
 
 
 class ConvLSTMCell(nn.Module):
-    # 这里面全都是数，衡量后面输入数据的维度/通道尺寸
     def __init__(self, input_dim, hidden_dim, kernel_size, bias):
         super(ConvLSTMCell, self).__init__()
 
@@ -17,7 +16,7 @@ class ConvLSTMCell(nn.Module):
         self.padding_size = kernel_size[0] // 2, kernel_size[1] // 2, kernel_size[2] // 2
         self.bias = bias
         self.conv = nn.Conv3d(self.input_dim + self.hidden_dim,
-                              4 * self.hidden_dim,  # 4* 是因为后面输出时要切4片
+                              4 * self.hidden_dim,  
                               self.kernel_size,
                               padding=self.padding_size,
                               bias=self.bias)
@@ -28,10 +27,6 @@ class ConvLSTMCell(nn.Module):
         combined_conv = self.conv(combined)
         cc_f, cc_i, cc_o, cc_g = torch.split(combined_conv, self.hidden_dim, dim=1)
 
-        # torch.sigmoid(),激活函数--
-        # nn.functional中的函数仅仅定义了一些具体的基本操作，
-        # 不能构成PyTorch中的一个layer
-        # torch.nn.Sigmoid()(input)等价于torch.sigmoid(input)
         f = torch.sigmoid(cc_f)
         i = torch.sigmoid(cc_i)
         o = torch.sigmoid(cc_o)
@@ -44,7 +39,6 @@ class ConvLSTMCell(nn.Module):
 
     def init_hidden(self, batch_size, image_size):
         height, width, depth = image_size
-        # 返回两个是因为cell的尺寸与h一样
         return (torch.zeros(batch_size, self.hidden_dim, height, width, depth,device=self.conv.weight.device),
                 torch.zeros(batch_size, self.hidden_dim, height, width, depth,device=self.conv.weight.device))
 
@@ -229,42 +223,32 @@ class ConvLstm(nn.Module):
 
         cell_list = []  # 为了储存每一层的参数尺寸
         for i in range(0, num_layers):
-            cur_input_dim = input_dim if i == 0 else self.hidden_dim[i - 1]  # 注意这里利用lstm单元得出到了输出h，h再作为下一层的输入，依次得到每一层的数据维度并储存
+            cur_input_dim = input_dim if i == 0 else self.hidden_dim[i - 1]  
             cell_list.append(ConvLSTMCell(input_dim=cur_input_dim,
                                         hidden_dim=self.hidden_dim[i],
                                         kernel_size=self.kernel_size,
                                         bias=self.bias
                                         ))
-        # 将上面循环得到的每一层的参数尺寸/维度，储存在self.cell_list中，后面会用到
-        # 注意这里用了ModuLelist函数，模块化列表
+
         self.cell_list = nn.ModuleList(cell_list)
-    # 这里forward有两个输入参数，input_tensor 是一个五维数据
-    # （t时间步,b输入batch_ize,c输出数据通道数--维度,h,w图像高乘宽）
-    # hidden_state=None 默认刚输入hidden_state为空，等着后面给初始化
+                    
     def forward(self, input_layer , hidden_state=None): #16 32 32 80
 
-        # input_layer = conv4.repeat(10, 1, 1, 1, 1, 1)
-
-        # 取出图片的数据，供下面初始化使用
         if self.batch_first:
             input_layer = input_layer.permute(1, 0, 2, 3, 4, 5)
         # 先调整一下输出数据的排列
         b, _, _, h, w, d = input_layer.size()
-        # 初始化hidd_state,利用后面和lstm单元中的初始化函数
         hidden_state = self._init_hidden(b, (h, w, d))
-        # 储存输出数据的列表
+
         layer_output_list = []
         seq_len = input_layer.size(1)
-        # 初始化输入数据
+
         cur_layer_input =input_layer
         for layer_idx in range(self.num_layers):
             h, c = hidden_state[layer_idx]
             output_inner = []
             for t in range(seq_len):
-                # 每一个时间步都更新 h,c
-                # 注意这里self.cell_list是一个模块(容器)
                 h, c = self.cell_list[layer_idx](cur_layer_input[:, t, :, :, :, :], [h, c])
-                # 储存输出，注意这里 h 就是此时间步的输出
                 output_inner.append(h)
             # 这一层的输出作为下一次层的输入,
             layer_output = torch.stack(output_inner,1)
