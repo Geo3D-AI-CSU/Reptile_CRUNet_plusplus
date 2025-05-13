@@ -100,12 +100,9 @@ class CatLabels():
         all_labels=[]
         all_datas=[]
         task_folder=f"{self.save_path}/task{task_i}"
-        pic_folder=f"{self.save_path}/img/tasks_catted"
-        if not os.path.exists(task_folder):
-            os.mkdir(task_folder)
-        if not os.path.exists(pic_folder):
-            os.mkdir(pic_folder)
-            os.mkdir(f"{pic_folder}/task{task_i}")
+        pic_folder=f"./img/tasks_catted/task{task_i}"
+        os.makedirs(task_folder,exist_ok=True)
+        os.makedirs(pic_folder,exist_ok=True)
         samples_ls=os.listdir(f"{self.to_path}/datas/task{task_i}")
         for sample in samples_ls:
             _, file_extension = os.path.splitext(sample)
@@ -124,7 +121,7 @@ class CatLabels():
             poro_i=sample_i_data[0, 0, :, :, :]
             perm_i=sample_i_data[0, 1, :, :, :]
             well_loc_i=sample_i_data[0, 2, :, :, :]
-            self.Display(X,Y,Z,poro_i,perm_i,well_loc_i,label_i,f"{pic_folder}/task{task_i}/sample{sample_i}.png")
+            self.Display(X,Y,Z,poro_i,perm_i,well_loc_i,label_i,f"{pic_folder}/sample{sample_i}.png")
 
             # shutil.copy(f"{all_data_path}/datas/task{task_i}/property{sample_i}.npy",f"{task_folder}/x_{sample_i}.npy")
             # np.save(f"{task_folder}/y_{sample_i}.npy", label_i)
@@ -137,13 +134,14 @@ class CatLabels():
         np.save(f"{task_folder}/x.npy", data)
         np.save(f"{task_folder}/y.npy", label)
     def DealAllTask(self, delete_org_file=False, delete_selected_file=False):
-        move_file = MoveFiles(self.from_path, self.to_path,delete_org_file)
-        move_file.MoveData()
+        # move_file = MoveFiles(self.from_path, self.to_path,delete_org_file)
+        # move_file.MoveData()
         if not os.path.exists(self.save_path):
             os.mkdir(self.save_path)
         all_tasks = os.listdir(f"{self.to_path}/labels")
         for task in all_tasks:
             task_i= re.findall(r'\d+', task)[0]
+            os.makedirs(f"{self.save_path}/img/tasks_catted",exist_ok=True)
             print(f"task{task_i}")
             self.DealSingleTask(task_i)
         if delete_selected_file:

@@ -1,4 +1,4 @@
-function [model] = BuildSim(pro_path,x_well,y_well,task_num,sample_num)
+function [model] = BuildSim1127(pro_path,x_well,y_well,task_num,sample_num)
 %
 % use_for_maml.m
 %
@@ -18,6 +18,10 @@ model = ModelUtil.create('Model');
 savedir=strcat("labels\task",task_num);
 mkdir(savedir);
 savedir=strcat(savedir,"\");
+
+savedir_pic=strcat("figs\task",task_num);
+% mkdir(savedir_pic);
+savedir_pic=strcat(savedir_pic,"\");
 
 model.title([native2unicode(hex2dec({'57' '30'}), 'unicode')  native2unicode(hex2dec({'8d' '28'}), 'unicode')  native2unicode(hex2dec({'67' '84'}), 'unicode')  native2unicode(hex2dec({'90' '20'}), 'unicode')  native2unicode(hex2dec({'4e' '2d'}), 'unicode')  native2unicode(hex2dec({'76' '84'}), 'unicode')  native2unicode(hex2dec({'4e' '8c'}), 'unicode')  native2unicode(hex2dec({'6c' '27'}), 'unicode')  native2unicode(hex2dec({'53' '16'}), 'unicode')  native2unicode(hex2dec({'78' 'b3'}), 'unicode')  native2unicode(hex2dec({'50' 'a8'}), 'unicode')  native2unicode(hex2dec({'5b' '58'}), 'unicode') ]);
 
@@ -845,10 +849,10 @@ model.result.export('img4').label('poro');
 
 
 savename_s2t=strcat(savedir,'label_s',num2str(sample_num),'.csv');
-savename_co2=strcat(savedir,'co2_s',num2str(sample_num),'.png');
-savename_temp=strcat(savedir,'temp_s',num2str(sample_num),'.png');
-savename_poro=strcat(savedir,'poro_s',num2str(sample_num),'.png');
-savename_perm=strcat(savedir,'perm_s',num2str(sample_num),'.png');
+savename_co2=strcat(savedir_pic,'co2_s',num2str(sample_num),'.png');
+savename_temp=strcat(savedir_pic,'temp_s',num2str(sample_num),'.png');
+savename_poro=strcat(savedir_pic,'poro_s',num2str(sample_num),'.png');
+savename_perm=strcat(savedir_pic,'perm_s',num2str(sample_num),'.png');
 
 model.result.export('img3').set('pngfilename', savename_perm);
 model.result.export('img4').set('pngfilename', savename_poro);
